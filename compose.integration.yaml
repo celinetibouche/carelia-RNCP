@@ -1,0 +1,32 @@
+services:
+  integration-db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: carelia
+      MYSQL_USER: carelia
+      MYSQL_PASSWORD: carelia_test
+      MYSQL_ROOT_PASSWORD: carelia_test_root
+    tmpfs:
+      - /var/lib/mysql
+    volumes:
+      - ./database/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/02_seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "127.0.0.1", "-ucarelia", "-pcarelia_test", "carelia", "-e", "SELECT 1 FROM daily_reports LIMIT 1"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  integration-tests:
+    build:
+      context: ./backend
+      target: development
+    environment:
+      NODE_ENV: test
+      SERVICE_NAME: carelia-api
+      DATABASE_URL: mysql://carelia:carelia_test@integration-db:3306/carelia
+    command: ["npm", "run", "test:integration"]
+    depends_on:
+      integration-db:
+        condition: service_healthy

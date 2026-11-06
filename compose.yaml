@@ -1,0 +1,196 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    # Resynchronise les volumes node_modules persistants avec package-lock.json.
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+
+  users:
+    build:
+      context: ./backend
+      target: development
+    image: carelia/users-api:development
+    command: sh -c "npm ci && npm run dev"
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: carelia-users-api
+      PORT: 4001
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      DATABASE_URL: mysql://${MYSQL_USER:-carelia}:${MYSQL_PASSWORD:-carelia_dev}@db:3306/${MYSQL_DATABASE:-carelia}
+    ports:
+      - "${USERS_PORT:-4001}:4001"
+    volumes:
+      - ./backend:/app
+      - users_node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:4001/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  daycares:
+    build:
+      context: ./backend
+      target: development
+    image: carelia/daycares-api:development
+    command: sh -c "npm ci && npm run dev"
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: carelia-daycares-api
+      PORT: 4002
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      DATABASE_URL: mysql://${MYSQL_USER:-carelia}:${MYSQL_PASSWORD:-carelia_dev}@db:3306/${MYSQL_DATABASE:-carelia}
+    ports:
+      - "${DAYCARES_PORT:-4002}:4002"
+    volumes:
+      - ./backend:/app
+      - daycares_node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:4002/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  diaper-changes:
+    build:
+      context: ./backend
+      target: development
+    image: carelia/diaper-changes-api:development
+    command: sh -c "npm ci && npm run dev"
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: carelia-diaper-changes-api
+      PORT: 4003
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      DATABASE_URL: mysql://${MYSQL_USER:-carelia}:${MYSQL_PASSWORD:-carelia_dev}@db:3306/${MYSQL_DATABASE:-carelia}
+    ports:
+      - "${DIAPER_CHANGES_PORT:-4003}:4003"
+    volumes:
+      - ./backend:/app
+      - diaper_changes_node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:4003/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  moods:
+    build:
+      context: ./backend
+      target: development
+    image: carelia/moods-api:development
+    command: sh -c "npm ci && npm run dev"
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: carelia-moods-api
+      PORT: 4004
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      DATABASE_URL: mysql://${MYSQL_USER:-carelia}:${MYSQL_PASSWORD:-carelia_dev}@db:3306/${MYSQL_DATABASE:-carelia}
+    ports:
+      - "${MOODS_PORT:-4004}:4004"
+    volumes:
+      - ./backend:/app
+      - moods_node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:4004/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  naps:
+    build:
+      context: ./backend
+      target: development
+    image: carelia/naps-api:development
+    command: sh -c "npm ci && npm run dev"
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: carelia-naps-api
+      PORT: 4005
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      DATABASE_URL: mysql://${MYSQL_USER:-carelia}:${MYSQL_PASSWORD:-carelia_dev}@db:3306/${MYSQL_DATABASE:-carelia}
+    ports:
+      - "${NAPS_PORT:-4005}:4005"
+    volumes:
+      - ./backend:/app
+      - naps_node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:4005/api/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-carelia}
+      MYSQL_USER: ${MYSQL_USER:-carelia}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-carelia_dev}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-carelia_root_dev}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - carelia_mysql_data:/var/lib/mysql
+      - ./database/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/02_seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-carelia_root_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  frontend_node_modules:
+  users_node_modules:
+  daycares_node_modules:
+  diaper_changes_node_modules:
+  moods_node_modules:
+  naps_node_modules:
+  carelia_mysql_data:

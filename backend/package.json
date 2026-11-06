@@ -1,0 +1,41 @@
+{
+  "name": "carelia-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API REST et Socket.io de Carelia",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "bootstrap:admin": "tsx src/bootstrap-admin.ts",
+    "bootstrap:demo": "tsx src/bootstrap-demo.ts",
+    "purge:messages": "npm run build && node dist/purge-messages.js",
+    "test:integration": "npm run build && node --import ./scripts/test-guard.mjs --test-concurrency=1 --test dist/integration.test.js dist/edge.integration.test.js dist/messaging.integration.test.js dist/unit.test.js dist/server.test.js",
+    "test:coverage": "npm run build && node --import ./scripts/test-guard.mjs --experimental-test-coverage --test-coverage-lines=99 --test-coverage-branches=96 --test-coverage-functions=100 --test-concurrency=1 --test dist/integration.test.js dist/edge.integration.test.js dist/messaging.integration.test.js dist/unit.test.js dist/server.test.js"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "helmet": "^8.3.0",
+    "mysql2": "^3.23.3",
+    "socket.io": "^4.8.3",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.13.3",
+    "@types/swagger-ui-express": "^4.1.8",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  }
+}
