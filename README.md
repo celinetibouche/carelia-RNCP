@@ -16,7 +16,7 @@ Travaux restant à réaliser sur Carelia pour le titre. Échéance : fin novembr
 
 | # | Compétence | À réaliser | Effort | État |
 | --- | --- | --- | --- | --- |
-| C5 | Analyser les besoins et maquetter | Expression des besoins de **F3 Absences**, user stories, diagramme de cas d'utilisation, **maquettes Figma de toute l'application** (nouveau design) et leur enchaînement (exportés dans `docs/maquettes/`) | moyen | à faire |
+| C5 | Analyser les besoins et maquetter | Expression des besoins de **F3 Absences**, user stories, diagramme de cas d'utilisation, **maquettes Figma de toute l'application** (nouveau design) et leur enchaînement (exportés dans `docs/maquettes/`) | moyen | fait |
 | C7 | Concevoir une base de données relationnelle | **MCD/MLD** mis à jour (base actuelle + F3) + migration `008_absences.sql` (table `absences`) | moyen | à faire |
 | C2, C3, C8 | Réaliser la fonctionnalité conçue | **F3 Absences** : un parent signale l'absence de son enfant, l'équipe voit les absents du jour, avec les règles métier et les droits par rôle | moyen | à faire |
 | C2 | Refonte du front | D'après les maquettes : d'abord le socle visuel (couleurs, typographies, composants communs), puis les écrans prioritaires (connexion, accueil, Absences), puis les autres si le temps le permet | moyen à gros | à faire |
