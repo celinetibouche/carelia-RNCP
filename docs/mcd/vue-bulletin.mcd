@@ -1,0 +1,31 @@
+% Vue 2 : F1 bulletin quotidien. ENFANT et UTILISATEUR sont détaillés dans la vue 1.
+% Extrait du MCD complet (MCD.mcd), disposé à la main pour être lisible.
+DE_HUMEUR, 11 OBSERVATION_HUMEUR, 0N HUMEUR
+HUMEUR: id_humeur, libelle
+SIESTE: id_sieste, heure_debut, heure_fin, commentaire
+DE_QUALITE_SIESTE, 11 SIESTE, 0N QUALITE_SIESTE
+QUALITE_SIESTE: id_qualite_sieste, libelle
+
+OBSERVATION_HUMEUR: id_observation_humeur, heure, commentaire
+CONTENIR_HUMEUR, 0N BULLETIN, 11 OBSERVATION_HUMEUR
+CONTENIR_SIESTE, 0N BULLETIN, 11 SIESTE
+AVOIR_BULLETIN, 11 BULLETIN, 0N ENFANT
+ENFANT: id_enfant
+
+REPAS: type_repas, quantite_mangee, libelle
+CONTENIR_REPAS, 0N BULLETIN, _11 REPAS
+BULLETIN: id_bulletin, date, resume, statut, date_publication, note_parents
+PUBLIER_BULLETIN, 0N BULLETIN, 0N UTILISATEUR
+UTILISATEUR: id_utilisateur
+
+ACTIVITE: libelle
+CONTENIR_ACTIVITE, 0N BULLETIN, _11 ACTIVITE
+CONTENIR_CHANGE, 0N BULLETIN, 11 CHANGE
+NOTIFIER, 0N BULLETIN, 0N UTILISATEUR: date_notification, date_lecture
+:
+
+TYPE_CHANGE: id_type_change, libelle
+DE_TYPE_CHANGE, 11 CHANGE, 0N TYPE_CHANGE
+CHANGE: id_change, heure_change, commentaire
+:
+:

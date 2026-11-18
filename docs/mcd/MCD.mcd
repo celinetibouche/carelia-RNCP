@@ -1,0 +1,53 @@
+% MCD Carelia (syntaxe Mocodo). Base : MCD du projet de groupe, complété avec les tables
+% ajoutées par les migrations 001 à 007. Seules les données métier y figurent ; les tables
+% techniques (sessions, journaux d'événements, audit) sont décrites dans le MLD.
+
+% --- Structure : crèche, utilisateurs, rôles, enfants ---
+CRECHE: id_creche, nom
+TRAVAILLER, 11 UTILISATEUR, 0N CRECHE
+UTILISATEUR: id_utilisateur, email, mot_de_passe_hache, nom, prenom, telephone, adresse, actif
+AVOIR_ROLE, 11 UTILISATEUR, 0N ROLE
+ROLE: id_role, libelle
+INSCRIRE, 11 ENFANT, 0N CRECHE
+ENFANT: id_enfant, prenom, nom, date_naissance, actif, groupe, contact_urgence_nom, contact_urgence_tel
+LIER_PARENT_ENFANT, 0N ENFANT, 0N UTILISATEUR: lien
+
+% --- F1 : bulletin quotidien ---
+AVOIR_BULLETIN, 11 BULLETIN, 0N ENFANT
+BULLETIN: id_bulletin, date, resume, statut, date_publication, note_parents
+PUBLIER_BULLETIN, 0N BULLETIN, 0N UTILISATEUR
+CONTENIR_SIESTE, 0N BULLETIN, 11 SIESTE
+SIESTE: id_sieste, heure_debut, heure_fin, commentaire
+DE_QUALITE_SIESTE, 11 SIESTE, 0N QUALITE_SIESTE
+QUALITE_SIESTE: id_qualite_sieste, libelle
+CONTENIR_CHANGE, 0N BULLETIN, 11 CHANGE
+CHANGE: id_change, heure_change, commentaire
+DE_TYPE_CHANGE, 11 CHANGE, 0N TYPE_CHANGE
+TYPE_CHANGE: id_type_change, libelle
+CONTENIR_HUMEUR, 0N BULLETIN, 11 OBSERVATION_HUMEUR
+OBSERVATION_HUMEUR: id_observation_humeur, heure, commentaire
+DE_HUMEUR, 11 OBSERVATION_HUMEUR, 0N HUMEUR
+HUMEUR: id_humeur, libelle
+CONTENIR_REPAS, 0N BULLETIN, _11 REPAS
+REPAS: type_repas, quantite_mangee, libelle
+CONTENIR_ACTIVITE, 0N BULLETIN, _11 ACTIVITE
+ACTIVITE: libelle
+NOTIFIER, 0N BULLETIN, 0N UTILISATEUR: date_notification, date_lecture
+
+% --- F2 : messagerie ---
+CONCERNER, 11 CONVERSATION, 0N ENFANT
+CONVERSATION: id_conversation, date_creation, date_derniere_activite
+ECHANGER, 11 CONVERSATION, 0N UTILISATEUR
+APPARTENIR, 11 MESSAGE, 0N CONVERSATION
+MESSAGE: id_message, contenu, date_envoi
+ENVOYER, 11 MESSAGE, 0N UTILISATEUR
+RECEVOIR, 0N MESSAGE, 0N UTILISATEUR: date_lecture
+
+% --- F3 : absences ---
+% Le motif est une table de référence (comme humeurs ou types de change) : « a_justifier »
+% porte la règle métier dans les données. Une absence annulée est supprimée (pas d'historique).
+CONCERNER_ABSENCE, 11 ABSENCE, 0N ENFANT
+ABSENCE: id_absence, date_debut, date_fin, commentaire, date_declaration, date_reception_justificatif
+DECLARER, 11 ABSENCE, 0N UTILISATEUR
+AVOIR_MOTIF, 11 ABSENCE, 0N MOTIF_ABSENCE
+MOTIF_ABSENCE: id_motif, libelle, a_justifier

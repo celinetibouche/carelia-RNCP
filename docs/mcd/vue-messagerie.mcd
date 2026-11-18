@@ -1,0 +1,19 @@
+% Vue 3 : F2 messagerie. ENFANT et UTILISATEUR sont détaillés dans la vue 1.
+% Extrait du MCD complet (MCD.mcd), disposé à la main pour être lisible.
+ENFANT: id_enfant
+CONCERNER, 11 CONVERSATION, 0N ENFANT
+CONVERSATION: id_conversation, date_creation, date_derniere_activite
+APPARTENIR, 11 MESSAGE, 0N CONVERSATION
+MESSAGE: id_message, contenu, date_envoi
+
+:
+:
+ECHANGER, 11 CONVERSATION, 0N UTILISATEUR
+ENVOYER, 11 MESSAGE, 0N UTILISATEUR
+RECEVOIR, 0N MESSAGE, 0N UTILISATEUR: date_lecture
+
+:
+:
+:
+UTILISATEUR: id_utilisateur
+:

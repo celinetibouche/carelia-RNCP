@@ -1,0 +1,19 @@
+% Vue 1 : structure (crèche, utilisateurs, rôles, enfants) et F3 Absences.
+% Extrait du MCD complet (MCD.mcd), disposé à la main pour être lisible.
+ROLE: id_role, libelle
+AVOIR_ROLE, 11 UTILISATEUR, 0N ROLE
+UTILISATEUR: id_utilisateur, email, mot_de_passe_hache, nom, prenom, telephone, adresse, actif
+TRAVAILLER, 11 UTILISATEUR, 0N CRECHE
+CRECHE: id_creche, nom
+
+:
+:
+DECLARER, 11 ABSENCE, 0N UTILISATEUR
+LIER_PARENT_ENFANT, 0N ENFANT, 0N UTILISATEUR: lien
+INSCRIRE, 11 ENFANT, 0N CRECHE
+
+MOTIF_ABSENCE: id_motif, libelle, a_justifier
+AVOIR_MOTIF, 11 ABSENCE, 0N MOTIF_ABSENCE
+ABSENCE: id_absence, date_debut, date_fin, commentaire, date_declaration, date_reception_justificatif
+CONCERNER_ABSENCE, 11 ABSENCE, 0N ENFANT
+ENFANT: id_enfant, prenom, nom, date_naissance, actif, groupe, contact_urgence_nom, contact_urgence_tel
