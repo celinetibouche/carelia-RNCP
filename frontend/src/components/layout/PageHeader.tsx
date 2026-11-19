@@ -26,7 +26,6 @@ export function PageHeader({
 }: PageHeaderProps) {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const branded = isParent(user.role)
   const [unread, setUnread] = useState(false)
 
   const sequence = useRef(0)
@@ -49,30 +48,34 @@ export function PageHeader({
   }, [watching, refresh])
   useMessagingEvents({ onChange: refresh, onResync: refresh }, watching)
 
+  // Boutons ronds cerclés, comme dans les maquettes (cloche à droite, retour à gauche).
+  // « ! » : force l'arrondi complet face au rounded-lg par défaut d'IconButton.
+  const roundButton = '!rounded-full border border-border bg-card'
   const notificationButton = showNotifications && canReadNotifications(user.role) && (
     <span className="relative shrink-0">
-      <IconButton label="Notifications" variant={branded ? 'outline' : 'ghost'} onClick={onNotificationsClick ?? (() => navigate('/notifications'))}>
-        <Bell size={21} aria-hidden="true" />
+      <IconButton label="Notifications" variant="outline" className={roundButton} onClick={onNotificationsClick ?? (() => navigate('/notifications'))}>
+        <Bell size={20} aria-hidden="true" />
       </IconButton>
-      {unread && <span className="pointer-events-none absolute right-1 top-1 size-2 rounded-full bg-destructive" aria-hidden="true" />}
+      {unread && <span className="pointer-events-none absolute right-1 top-1 size-2 rounded-full bg-ring" aria-hidden="true" />}
     </span>
   )
 
+  // En-tête de la nouvelle maquette, identique pour les parents et l'équipe : titre à empattement en grand,
+  // sous-titre en petites majuscules espacées, sans bordure basse.
   return (
-    <header className="sticky top-0 z-20 -mx-5 mb-5 flex min-h-16 items-center justify-between gap-3 border-b border-border bg-background px-5 py-3">
-      <div className="flex min-w-0 items-center gap-2">
-        {branded && notificationButton}
-        {showBack && (!branded || !showNotifications) && (
-          <IconButton label="Retour" variant={branded ? 'outline' : 'ghost'} onClick={onBack ?? (() => navigate(-1))}>
+    <header className="sticky top-0 z-20 -mx-5 mb-5 flex min-h-20 items-center justify-between gap-3 bg-background/95 px-5 pb-3 pt-5 backdrop-blur-sm">
+      <div className="flex min-w-0 items-center gap-3">
+        {showBack && (
+          <IconButton label="Retour" variant="outline" className={roundButton} onClick={onBack ?? (() => navigate(-1))}>
             <ArrowLeft size={20} aria-hidden="true" />
           </IconButton>
         )}
         <div className="min-w-0">
-          <h1 className="break-words text-[23px] leading-tight">{title}</h1>
-          {subtitle && <p className="mt-0.5 break-words text-xs text-muted-foreground">{subtitle}</p>}
+          <h1 className="break-words text-[27px] font-semibold leading-tight tracking-tight">{title}</h1>
+          {subtitle && <p className="mt-1 break-words text-[11px] uppercase tracking-[0.06em] text-muted-foreground">{subtitle}</p>}
         </div>
       </div>
-      {branded ? <div className="shrink-0 text-right text-primary"><span className="block font-serif text-lg">Carelia</span><small className="block text-[9px] font-semibold uppercase">Parents</small></div> : notificationButton}
+      {notificationButton}
     </header>
   )
 }
