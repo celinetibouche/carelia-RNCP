@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Bell, ChevronRight, MessageCircle } from 'lucide-react'
+import { FileText, MessageCircle, type LucideIcon } from 'lucide-react'
 import { api, type MessageNotification, type MessageNotificationPage, type ReportNotification } from '../api.ts'
 import { formatDateTime, formatDay } from '../dates.ts'
 import { useAuth } from '../useAuth.ts'
@@ -7,7 +7,7 @@ import { useMessagingEvents } from '../useMessagingEvents.ts'
 import { canReadNotifications, isParent } from '../permissions.ts'
 import { AccessDenied } from '../components/shared/AccessDenied.tsx'
 import { PageHeader } from '../components/layout/PageHeader.tsx'
-import { PersonListItem } from '../components/shared/PersonListItem.tsx'
+import { Link } from 'react-router'
 import { Button } from '../components/ui/Button.tsx'
 import { InlineError, LoadingText } from '../components/ui/InlineStatus.tsx'
 
@@ -85,23 +85,42 @@ export function NotificationsPage() {
   return <>
     <PageHeader title="Notifications" showBack showNotifications={false} />
     {error && <InlineError className="mb-3" message={error} onRetry={() => void refresh()} />}
+    {/* Deux groupes comme la maquette : « Nouveau » (non lues) puis « Plus tôt » (déjà lues). */}
+    {[true, false].map((unread) => {
+      const groupMessages = messages.filter((item) => !item.readAt === unread)
+      const groupReports = reports.filter((item) => !item.readAt === unread)
+      if (!groupMessages.length && !groupReports.length) return null
+      return <section key={String(unread)} className="mb-5">
+        <h2 className="mb-3 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-[#9b6d54]">{unread ? 'Nouveau' : 'Plus tôt'}</h2>
+        <div className="grid gap-3">
+          {groupMessages.map((item) => <NotificationCard key={`message-${item.messageId}`} to={`/messages/${item.conversationId}`} unread={unread}
+            icon={MessageCircle} tone="coral" title="Nouveau message" text={`Discussion à propos de ${item.childName}.`} time={formatDateTime(item.createdAt)} />)}
+          {groupReports.map((item) => <NotificationCard key={`report-${item.notificationId}`} to={`/bulletin?childId=${item.childId}&date=${item.reportDate}`} unread={unread}
+            icon={FileText} tone="sand" title="Nouveau bulletin disponible" text={`La journée de ${item.childName} du ${formatDay(item.reportDate)} vient d'être publiée.`} time={formatDateTime(item.createdAt)} />)}
+        </div>
+      </section>
+    })}
     <div className="grid gap-2">
-      {messages.map((item) => <PersonListItem key={`message-${item.messageId}`}
-        to={`/messages/${item.conversationId}`}
-        name={`Message concernant ${item.childName}`} description={formatDateTime(item.createdAt)}
-        leading={<span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-primary"><MessageCircle size={20} aria-hidden="true" /></span>}
-        status={item.readAt ? 'Lu' : 'Nouveau'} statusTone={item.readAt ? 'neutral' : 'unread'}
-        trailing={<ChevronRight size={18} aria-hidden="true" />} />)}
-      {reports.map((item) => <PersonListItem key={`report-${item.notificationId}`}
-        to={`/bulletin?childId=${item.childId}&date=${item.reportDate}`}
-        name={`Bulletin de ${item.childName}`} description={formatDay(item.reportDate)}
-        leading={<span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-primary"><Bell size={20} aria-hidden="true" /></span>}
-        status={item.readAt ? 'Lu' : 'Nouveau'} statusTone={item.readAt ? 'neutral' : 'unread'}
-        trailing={<ChevronRight size={18} aria-hidden="true" />} />)}
       {loading && <LoadingText />}
       {!loading && !reports.length && !messages.length && !error && <p className="py-6 text-sm text-muted-foreground">Aucune notification.</p>}
       {moreError && <InlineError message={`Notifications suivantes indisponibles : ${moreError}`} onRetry={() => void loadMore()} />}
       {!loading && !moreError && messages.length < total && <Button variant="outline" loading={loadingMore} onClick={() => void loadMore()}>Voir plus de notifications</Button>}
     </div>
   </>
+}
+
+// Carte de notification de la maquette : pastille d'icône ronde, titre, texte, heure ;
+// fond beige et point corail tant qu'elle n'est pas lue.
+function NotificationCard({ to, unread, icon: Icon, tone, title, text, time }: {
+  to: string; unread: boolean; icon: LucideIcon; tone: 'sand' | 'coral'; title: string; text: string; time: string
+}) {
+  return <Link to={to} className={`relative flex gap-4 rounded-card border p-4 hover:bg-muted ${unread ? 'border-[#d9c2ad] bg-[#ece0d2]' : 'border-border bg-card'}`}>
+    <span className={`flex size-11 shrink-0 items-center justify-center rounded-full ${tone === 'coral' ? 'bg-[#fbe4dc] text-ring' : 'bg-secondary text-primary'}`} aria-hidden="true"><Icon size={19} /></span>
+    <span className="min-w-0 flex-1 pr-3">
+      <strong className="block text-sm">{title}</strong>
+      <span className="mt-1 block text-sm text-muted-foreground">{text}</span>
+      <small className="mt-2 block text-xs text-muted-foreground">{time}</small>
+    </span>
+    {unread && <span className="absolute right-4 top-4 size-2 rounded-full bg-ring"><span className="sr-only">Non lue</span></span>}
+  </Link>
 }

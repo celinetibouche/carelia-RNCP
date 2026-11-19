@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router'
-import { Baby, ChevronRight, Plus } from 'lucide-react'
+import { ChevronRight, Plus } from 'lucide-react'
 import { api, type Child } from '../api.ts'
 import { useAuth } from '../useAuth.ts'
 import { canEditChildren, isParent } from '../permissions.ts'
 import { PageHeader } from '../components/layout/PageHeader.tsx'
-import { PersonListItem } from '../components/shared/PersonListItem.tsx'
 import { SearchField } from '../components/shared/SearchField.tsx'
 import { FormField, SelectField } from '../components/ui/FormField.tsx'
 import { InlineError } from '../components/ui/InlineStatus.tsx'
+import { Tag } from '../components/ui/Tag.tsx'
+import { ageLabel } from '../dates.ts'
+
+// Pastilles pastel alternées pour les avatars à initiale (maquette S2), choisies selon l'identifiant
+// de l'enfant pour qu'un même enfant garde toujours la même couleur.
+const avatarTones = ['bg-[#eef0ea] text-primary', 'bg-[#f6e3db] text-[#a0624a]', 'bg-[#efeaf0] text-[#7a6a80]', 'bg-[#f3ead9] text-[#8c6b32]']
 
 export function ChildrenPage() {
   const { user } = useAuth()
@@ -42,32 +47,36 @@ export function ChildrenPage() {
     return <Navigate to={`/enfants/${children[0].childId}`} replace />
   }
 
+  const count = `${children.length} enfant${children.length > 1 ? 's' : ''}`
   return <>
-    <PageHeader title={isParent(user.role) ? 'Mes enfants' : 'Les enfants'} />
+    <PageHeader title={isParent(user.role) ? 'Mes enfants' : 'Les enfants'} subtitle={loading ? undefined : isParent(user.role) ? count : `${count} inscrit${children.length > 1 ? 's' : ''}`} />
     <SearchField value={search} onChange={setSearch} placeholder="Rechercher un enfant" />
     <div className="-mx-5 mt-4 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Filtrer les fiches">
       {([['ALL', 'Tous'], ['ACTIVE', 'Actifs'], ['INACTIVE', 'Inactifs']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}
-        className={`min-h-9 shrink-0 rounded-full border px-4 text-xs font-semibold ${filter === value ? 'border-primary bg-accent text-primary' : 'border-border bg-card text-muted-foreground'}`}>{label}</button>)}
+        className={`min-h-9 shrink-0 rounded-full border px-4 text-xs font-semibold ${filter === value ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-muted-foreground'}`}>{label}</button>)}
     </div>
     {knownGroups.length > 0 && <FormField label="Groupe" htmlFor="children-group" className="mt-3">
-      <SelectField value={groupName} className="rounded-full" onChange={(event) => setGroupName(event.target.value)}>
+      <SelectField value={groupName} onChange={(event) => setGroupName(event.target.value)}>
         <option value="">Tous les groupes</option>
         {knownGroups.map((group) => <option key={group} value={group}>{group}</option>)}
       </SelectField>
     </FormField>}
     {!loading && error && <InlineError className="mt-4" message={error} onRetry={() => setAttempt((value) => value + 1)} />}
-    <div className="mt-4 grid gap-2">
-      {!loading && children.map((child) => <PersonListItem
-        key={child.childId} to={`/enfants/${child.childId}`}
-        name={`${child.firstName} ${child.lastName}`}
-        description={child.groupName ?? 'Enfant'}
-        leading={<span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted text-primary"><Baby size={22} /></span>}
-        status={child.isActive ? 'Actif' : 'Inactif'} statusTone={child.isActive ? 'success' : 'neutral'}
-        trailing={<ChevronRight size={15} className="text-muted-foreground" aria-hidden="true" />}
-      />)}
+    <div className="mt-4 grid gap-3">
+      {/* Carte enfant de la maquette : avatar rond à l'initiale, nom, « âge · groupe », chevron. */}
+      {!loading && children.map((child) => <Link key={child.childId} to={`/enfants/${child.childId}`}
+        className={`flex min-h-20 items-center gap-4 rounded-card border border-border bg-card px-4 py-3 hover:bg-muted ${child.isActive ? '' : 'opacity-60'}`}>
+        <span className={`flex size-14 shrink-0 items-center justify-center rounded-full text-lg font-semibold ${avatarTones[child.childId % avatarTones.length]}`} aria-hidden="true">{child.firstName[0]}</span>
+        <span className="min-w-0 flex-1">
+          <strong className="block truncate text-lg font-medium">{child.firstName} {child.lastName}</strong>
+          <small className="block truncate text-sm text-muted-foreground">{[ageLabel(child.birthDate), child.groupName ? `Groupe des ${child.groupName}` : null].filter(Boolean).join(' · ')}</small>
+        </span>
+        {!child.isActive && <Tag tone="muted">Inactif</Tag>}
+        <ChevronRight size={20} className="shrink-0 text-foreground" aria-hidden="true" />
+      </Link>)}
       {loading && <p className="py-6 text-sm text-muted-foreground">Chargement...</p>}
       {!loading && !children.length && !error && <p className="py-6 text-sm text-muted-foreground">Aucun enfant trouvé.</p>}
     </div>
-    {canEditChildren(user.role) && <Link to="/enfants/nouveau" className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold"><Plus size={18} />Ajouter un profil</Link>}
+    {canEditChildren(user.role) && <Link to="/enfants/nouveau" className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"><Plus size={18} />Nouvel enfant</Link>}
   </>
 }

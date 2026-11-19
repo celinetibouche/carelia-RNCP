@@ -1,17 +1,26 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
-import { BookOpen, ChevronRight, Plus } from 'lucide-react'
+import { ChevronRight, Plus } from 'lucide-react'
 import { api, type Child, type Report } from '../api.ts'
-import { formatDay } from '../dates.ts'
 import { useAuth } from '../useAuth.ts'
 import { canEditReports } from '../permissions.ts'
 import { PageHeader } from '../components/layout/PageHeader.tsx'
-import { PersonListItem } from '../components/shared/PersonListItem.tsx'
+import { Tag } from '../components/ui/Tag.tsx'
 import { FormField, SelectField, TextInput } from '../components/ui/FormField.tsx'
 import { Button } from '../components/ui/Button.tsx'
 import { InlineError, LoadingText } from '../components/ui/InlineStatus.tsx'
 
 const pageSize = 20
+const weekday = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+const monthShort = new Intl.DateTimeFormat('fr-FR', { month: 'short' })
+
+// Libellé de la carte : « Aujourd'hui, 12 novembre » ou « Jeudi 6 novembre » (maquette S5).
+function dayTitle(value: string) {
+  const date = new Date(`${value}T12:00:00`)
+  const label = weekday.format(date)
+  if (date.toDateString() === new Date().toDateString()) return `Aujourd'hui, ${label.split(' ').slice(1).join(' ')}`
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
 
 export function ReportsPage() {
   const { user } = useAuth()
@@ -44,9 +53,8 @@ export function ReportsPage() {
   }, [queryKey, attempt])
 
   return <>
-    <PageHeader title="Bulletins" />
-    {canEditReports(user.role) && <Link to="/bulletin" className="mb-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 text-sm font-semibold text-primary"><Plus size={18} />Saisir un bulletin</Link>}
-    <div className="grid grid-cols-1 gap-3 rounded-card border border-border bg-card p-4 min-[375px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <PageHeader title="Bulletins" subtitle="Suivi quotidien" />
+    <div className="grid grid-cols-1 gap-3 min-[375px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <FormField label="Enfant" htmlFor="reports-child">
         <SelectField value={childId} onChange={(event) => { setChildId(event.target.value); setPage(0) }}>
           <option value="">Tous</option>
@@ -58,20 +66,34 @@ export function ReportsPage() {
       </FormField>
     </div>
     {error && <InlineError className="mt-4" message={error} onRetry={() => setAttempt((value) => value + 1)} />}
-    <div className="mt-5 grid gap-2">
-      {reports.map((report) => <PersonListItem key={report.reportId}
-        to={`/bulletin?childId=${report.childId}&date=${report.reportDate}`}
-        name={`${report.firstName} ${report.lastName}`} description={formatDay(report.reportDate)}
-        leading={<span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-primary"><BookOpen size={20} aria-hidden="true" /></span>}
-        status={report.status === 'PUBLISHED' ? 'Publié' : 'Brouillon'} statusTone={report.status === 'PUBLISHED' ? 'success' : 'neutral'}
-        trailing={<ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />}
-      />)}
+    <div className="mt-5 grid gap-3">
+      {/* Carte de la maquette : pastille ronde avec la date, jour en toutes lettres, enfant, résumé, statut. */}
+      {reports.map((report) => {
+        const date = new Date(`${report.reportDate}T12:00:00`)
+        return <Link key={report.reportId} to={`/bulletin?childId=${report.childId}&date=${report.reportDate}`}
+          className="flex min-h-24 items-center gap-4 rounded-card border border-border bg-card px-4 py-4 hover:bg-muted">
+          <span className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full bg-[#e5d5c5] leading-none text-primary" aria-hidden="true">
+            <strong className="text-lg">{String(date.getDate()).padStart(2, '0')}</strong>
+            <small className="mt-0.5 text-[9px] uppercase">{monthShort.format(date)}</small>
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-start justify-between gap-2">
+              <strong className="text-sm">{dayTitle(report.reportDate)}</strong>
+              <Tag tone={report.status === 'PUBLISHED' ? 'neutral' : 'sand'} className="shrink-0">{report.status === 'PUBLISHED' ? 'Publié' : 'Brouillon'}</Tag>
+            </span>
+            <small className="mt-1 block text-xs font-semibold text-primary">{report.firstName} {report.lastName}</small>
+            {report.summary && <small className="mt-1 block truncate text-sm text-muted-foreground">{report.summary}</small>}
+          </span>
+          <ChevronRight size={18} className="shrink-0 text-foreground" aria-hidden="true" />
+        </Link>
+      })}
       {!loading && !reports.length && !error && <p className="py-6 text-sm text-muted-foreground">Aucun bulletin trouvé.</p>}
       {loading && <LoadingText />}
     </div>
-    <div className="mt-5 flex justify-between gap-3">
+    {(page > 0 || reports.length === pageSize) && <div className="mt-5 flex justify-between gap-3">
       <Button variant="outline" disabled={page === 0 || loading} onClick={() => setPage(page - 1)}>Précédent</Button>
       <Button variant="outline" disabled={reports.length < pageSize || loading} onClick={() => setPage(page + 1)}>Suivant</Button>
-    </div>
+    </div>}
+    {canEditReports(user.role) && <Link to="/bulletin" className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground"><Plus size={18} />Saisir un bulletin</Link>}
   </>
 }

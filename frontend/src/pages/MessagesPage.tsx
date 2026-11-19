@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
-import { Plus } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
 import { api, json, type Child, type Conversation, type ConversationPage, type ParentLink } from '../api.ts'
 import { formatShortTime } from '../dates.ts'
@@ -132,11 +132,16 @@ export function MessagesPage() {
 
   if (!allowed) return <AccessDenied />
   return <>
-    <PageHeader title="Messages" />
+    <PageHeader title="Messages" subtitle={parent ? 'Échanges avec la crèche' : 'Échanges avec les familles'} />
     <SearchField value={search} onChange={setSearch} label="Rechercher une discussion" placeholder="Rechercher une discussion" className="mb-4" />
-    <Button className="mb-4 w-full rounded-xl" icon={<Plus size={17} />} onClick={() => setCreating(!creating)} aria-expanded={creating}>Créer une discussion</Button>
-    {creating && <form onSubmit={(event) => void create(event)} className="mb-5 grid gap-3 rounded-card border border-border bg-card p-4">
-      <h2 className="text-lg">Écrire à {parent ? 'la crèche' : 'un parent'}</h2>
+    {/* Carte « Écrire à… » de la maquette : le bouton déplie le formulaire de création existant. */}
+    <section className="mb-4 rounded-card border border-border bg-[#e8d9ca] p-4">
+      <div className="flex items-center gap-4">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground" aria-hidden="true"><Pencil size={20} /></span>
+        <span><h2 className="text-xl font-semibold">Écrire à {parent ? 'la crèche' : 'un parent'}</h2><small className="text-sm text-muted-foreground">Démarrer une nouvelle discussion</small></span>
+      </div>
+      {!creating && <Button variant="outline" className="mt-4 min-h-12 w-full" onClick={() => setCreating(true)} aria-expanded={creating}>Choisir un destinataire</Button>}
+    {creating && <form onSubmit={(event) => void create(event)} className="mt-4 grid gap-3">
       <FormField label="Enfant" htmlFor="message-child" required hint={selectedChild ? `La discussion portera sur ${selectedChild.firstName} ${selectedChild.lastName}.` : undefined}>
         <SelectField value={effectiveChildId} onChange={(event) => chooseChild(event.target.value)}>
           <option value="">Choisir un enfant</option>
@@ -151,7 +156,9 @@ export function MessagesPage() {
         </SelectField>
       </FormField>}
       <Button type="submit" loading={saving} disabled={!effectiveChildId || (!parent && !effectiveParentId)}>Ouvrir la discussion</Button>
+      <Button variant="ghost" onClick={() => setCreating(false)}>Annuler</Button>
     </form>}
+    </section>
     {creating && childrenError && <InlineError className="mb-3" message={childrenError} onRetry={loadChildren} />}
     {error && <InlineError className="mb-3" message={error} />}
     {listError && <InlineError className="mb-3" message={listError} onRetry={() => void reload(false)} />}
@@ -160,15 +167,15 @@ export function MessagesPage() {
         const name = parent ? `${item.childFirstName} ${item.childLastName}` : `${item.parentFirstName} ${item.parentLastName}`
         const description = parent ? 'Équipe de la crèche' : `À propos de ${item.childFirstName} ${item.childLastName}`
         return <Link key={item.conversationId} to={`/messages/${item.conversationId}`}
-          className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-card p-3 text-left hover:bg-accent">
-          <Avatar name={name} className="rounded-xl bg-muted! text-foreground!" />
+          className="grid min-h-20 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-card border border-border bg-card px-4 py-3 text-left hover:bg-muted">
+          <Avatar name={name} className="size-12! rounded-full! bg-[#d9c4b4]! text-primary!" />
           <span className="min-w-0">
             <b className="block truncate text-sm">{name}</b>
             <span className="block truncate text-xs text-muted-foreground">{description}</span>
           </span>
           <span className="flex flex-col items-end gap-1 text-[10px] text-muted-foreground">
             <time dateTime={item.lastActivityAt}>{formatShortTime(item.lastActivityAt)}</time>
-            {item.unreadCount > 0 && <b className="rounded-full bg-primary px-2 py-0.5 text-primary-foreground">
+            {item.unreadCount > 0 && <b className="rounded-full bg-ring px-2 py-0.5 text-primary-foreground">
               {item.unreadCount}<span className="sr-only"> message{item.unreadCount > 1 ? 's' : ''} non lu{item.unreadCount > 1 ? 's' : ''}</span>
             </b>}
           </span>

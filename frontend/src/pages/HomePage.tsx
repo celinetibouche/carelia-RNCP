@@ -6,7 +6,7 @@ import { PageHeader } from '../components/layout/PageHeader.tsx'
 import { InlineError } from '../components/ui/InlineStatus.tsx'
 import { Tag } from '../components/ui/Tag.tsx'
 import { canUseMessaging, isParent } from '../permissions.ts'
-import { formatDay } from '../dates.ts'
+import { ageLabel, formatDay } from '../dates.ts'
 import { useAuth } from '../useAuth.ts'
 import { useMessagingEvents } from '../useMessagingEvents.ts'
 
@@ -23,13 +23,6 @@ const dateLabel = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'nume
 const intakeNames: Record<string, string> = { ALL: 'Tout mangé', MOST: 'Bien mangé', LITTLE: 'Peu mangé', NONE: 'Refusé' }
 const moodNames: Record<string, string> = { SAD: 'Triste', CALM: 'Calme', HAPPY: 'Joyeux', TIRED: 'Fatigué' }
 const timeLabel = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' })
-// Âge affiché sur l'accueil parent (« 2 ANS », « 8 MOIS »), calculé à partir de la date de naissance.
-function ageLabel(birthDate: string, today: Date) {
-  const birth = new Date(`${birthDate}T00:00:00`)
-  const months = (today.getFullYear() - birth.getFullYear()) * 12 + today.getMonth() - birth.getMonth() - (today.getDate() < birth.getDate() ? 1 : 0)
-  if (months < 0) return ''
-  return months < 24 ? `${months} mois` : `${Math.floor(months / 12)} ans`
-}
 const minutes = (value: string) => { const [hours, mins] = value.split(':').map(Number); return hours * 60 + mins }
 const duration = (mins: number) => `${Math.floor(mins / 60)} h ${String(mins % 60).padStart(2, '0')}`
 

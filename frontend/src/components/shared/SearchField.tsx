@@ -11,7 +11,7 @@ type SearchFieldProps = {
 
 export function SearchField({ value, onChange, placeholder = 'Rechercher', label = 'Rechercher', className = '' }: SearchFieldProps) {
   return (
-    <div className={`flex min-h-12 items-center gap-2 rounded-full border border-border bg-card px-3 focus-within:outline-2 focus-within:outline-primary ${className}`}>
+    <div className={`flex min-h-12 items-center gap-2 rounded-card border border-border bg-card px-4 focus-within:outline-2 focus-within:outline-primary ${className}`}>
       <Search size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
       <input
         type="search"

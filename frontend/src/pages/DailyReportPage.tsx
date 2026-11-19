@@ -12,6 +12,7 @@ import { Button, IconButton } from '../components/ui/Button.tsx'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog.tsx'
 import { FormField, SelectField, TextArea, TextInput } from '../components/ui/FormField.tsx'
 import { InlineError, LoadingText } from '../components/ui/InlineStatus.tsx'
+import { Tag } from '../components/ui/Tag.tsx'
 import { SectionCard } from '../components/ui/SectionCard.tsx'
 import { StatusBadge } from '../components/ui/StatusBadge.tsx'
 import { PublishedReport } from '../components/shared/PublishedReport.tsx'
@@ -221,11 +222,11 @@ function DailyReportEditor() {
   </>
 
   return <>
-    <PageHeader title="Bulletin du jour" showBack />
+    <PageHeader title={selectedChild ? `Bulletin de ${selectedChild.firstName}` : 'Bulletin du jour'} subtitle={formatDay(date)} showBack />
     <div className="-mx-5 mb-5 flex gap-2 overflow-x-auto px-5 pb-1" aria-label="Choisir un enfant">
       {children.map((child) => <button key={child.childId} type="button" aria-pressed={child.childId === childId}
         onClick={() => setParams({ childId: String(child.childId), date })}
-        className={`min-h-9 shrink-0 rounded-full border px-3 text-xs font-semibold ${child.childId === childId ? 'border-primary bg-accent text-primary' : 'border-border bg-card'}`}>
+        className={`min-h-10 shrink-0 rounded-lg border px-4 text-sm font-medium ${child.childId === childId ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card'}`}>
         {child.firstName}
       </button>)}
     </div>
@@ -250,7 +251,7 @@ function DailyReportEditor() {
     {draft && <div className="grid gap-5">
       <div className="flex items-center justify-between gap-3 rounded-[22px] bg-secondary px-4 py-3">
         <span className="flex min-w-0 items-center gap-2 font-semibold"><Baby size={20} className="shrink-0 text-secondary-foreground" />{draft.firstName} {draft.lastName}</span>
-        <StatusBadge tone="neutral" className="shrink-0">{draft.status === 'ARCHIVED' ? 'Archivé' : 'Brouillon'}</StatusBadge>
+        <Tag tone="sand" className="shrink-0">{draft.status === 'ARCHIVED' ? 'Archivé' : 'Brouillon'}</Tag>
       </div>
       <SectionCard title="Humeur" icon={Smile}>
         <div className="flex gap-2 overflow-x-auto pb-1">

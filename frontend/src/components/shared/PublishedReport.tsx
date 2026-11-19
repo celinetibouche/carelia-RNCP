@@ -36,11 +36,11 @@ export function PublishedReport({ report }: { report: Report }) {
     </header>
 
     <div className="my-5 grid grid-cols-3 gap-2">
-      <MetricTile compact className="min-h-[108px]" icon={<Smile size={21} className="text-amber-600" />} label="Humeur"
+      <MetricTile compact className="min-h-[108px]" icon={<Smile size={21} className="text-primary" />} label="Humeur"
         value={mood ? moodNames[mood.moodLabel ?? ''] ?? 'Observée' : '—'} />
-      <MetricTile compact className="min-h-[108px]" icon={<Utensils size={21} className="text-emerald-700" />} label="Repas"
+      <MetricTile compact className="min-h-[108px]" icon={<Utensils size={21} className="text-primary" />} label="Repas"
         value={meal ? intakeNames[meal.intake] : '—'} />
-      <MetricTile compact className="min-h-[108px]" icon={<Moon size={21} className="text-violet-600" />} label="Sommeil"
+      <MetricTile compact className="min-h-[108px]" icon={<Moon size={21} className="text-primary" />} label="Sommeil"
         value={duration(naps.reduce((sum, value) => sum + value, 0))} />
     </div>
 

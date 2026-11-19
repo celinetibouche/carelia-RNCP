@@ -10,7 +10,6 @@ import { canUseMessaging, isParent } from '../permissions.ts'
 import { AccessDenied } from '../components/shared/AccessDenied.tsx'
 import { PageHeader } from '../components/layout/PageHeader.tsx'
 import { Button } from '../components/ui/Button.tsx'
-import { Avatar } from '../components/shared/Avatar.tsx'
 import { InlineError, LoadingText } from '../components/ui/InlineStatus.tsx'
 
 export function ConversationPage() {
@@ -121,18 +120,12 @@ function ConversationView({ id }: { id: number }) {
   const parent = isParent(user.role)
   const contactName = conversation ? (parent ? 'Équipe de la crèche' : `${conversation.parentFirstName} ${conversation.parentLastName}`) : ''
   return <>
-    <PageHeader title="Discussion" showBack showNotifications={false} />
+    {/* Le nom du contact devient le titre de la page (maquette S8), l'enfant concerné en sous-titre. */}
+    <PageHeader title={contactName || 'Discussion'} subtitle={conversation ? `À propos de ${conversation.childFirstName} ${conversation.childLastName}` : undefined} showBack showNotifications={false} />
     {loadError && <InlineError className="mb-3" message={loadError} onRetry={() => { setLoading(true); void refresh() }} />}
     {loading && <LoadingText />}
     {/* La colonne remplit la hauteur de l'écran : la barre de saisie reste en bas, même si la discussion est courte. */}
     {conversation && <div className="flex min-h-[calc(100dvh-11rem-env(safe-area-inset-bottom))] flex-col">
-      <div className="mb-5 flex items-center gap-3">
-        <Avatar name={contactName} className="rounded-xl bg-muted! text-foreground!" />
-        <div className="min-w-0">
-          <b className="block truncate">{contactName}</b>
-          <p className="truncate text-xs text-muted-foreground">À propos de {conversation.childFirstName} {conversation.childLastName}</p>
-        </div>
-      </div>
       {hasMore && <Button variant="outline" className="mb-4 w-full" loading={loadingOlder} onClick={() => void loadOlder()}>Voir les messages précédents</Button>}
       {olderError && <InlineError className="mb-3" message={`Messages précédents indisponibles : ${olderError}`} onRetry={() => void loadOlder()} />}
       <div className="grid flex-1 content-start gap-3 pb-4" role="log" aria-label="Messages de la discussion">
@@ -140,10 +133,10 @@ function ConversationView({ id }: { id: number }) {
           const mine = message.senderId === user.userId
           // L'expéditeur n'est nommé que si ce n'est ni moi ni le parent de la discussion (ex. un autre membre de l'équipe).
           const showSender = !mine && message.senderId !== conversation.parentId
-          return <article key={message.messageId} className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm ${mine ? 'ml-auto rounded-tr-sm bg-primary text-primary-foreground' : 'mr-auto rounded-tl-sm bg-card'}`}>
+          return <article key={message.messageId} className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm ${mine ? 'ml-auto rounded-br-sm bg-[#765747] text-primary-foreground' : 'mr-auto rounded-bl-sm border border-border bg-card'}`}>
             {showSender && <p className="mb-1 text-xs font-semibold opacity-80">{`${message.senderFirstName ?? ''} ${message.senderLastName ?? ''}`.trim()}</p>}
             <p className="whitespace-pre-wrap break-words leading-6">{message.body}</p>
-            <small className="mt-1 block text-[11px] opacity-80">{formatMessageTime(message.createdAt)}{mine && message.firstReadAt ? ` · Lu ${formatMessageTime(message.firstReadAt)}` : ''}</small>
+            <small className="mt-1 block text-right text-[11px] opacity-70">{formatMessageTime(message.createdAt)}{mine && message.firstReadAt ? ` · Lu ${formatMessageTime(message.firstReadAt)}` : ''}</small>
           </article>
         })}
         {!messages.length && !loadError && <p className="py-8 text-center text-sm text-muted-foreground">Écrivez le premier message.</p>}
@@ -152,14 +145,14 @@ function ConversationView({ id }: { id: number }) {
       {/* Barre de saisie collée en bas, au-dessus de la barre de navigation mobile. */}
       <form onSubmit={(event) => void send(event)} className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-5 grid grid-cols-[minmax(0,1fr)] gap-2 bg-background px-5 pb-2 pt-2">
         {sendError && <InlineError message={sendError} onRetry={() => void send()} />}
-        <div className="flex min-w-0 items-end gap-2 rounded-xl bg-card p-2 shadow-sm">
+        <div className="flex min-w-0 items-end gap-3 border-t border-border pt-3">
           <label htmlFor="message-body" className="sr-only">Votre message</label>
           <textarea id="message-body" rows={1} value={body} onChange={(event) => setBody(event.target.value)} maxLength={2000}
             placeholder="Écrire un message…"
-            className="max-h-32 min-h-9 min-w-0 flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary" />
+            className="max-h-32 min-h-12 min-w-0 flex-1 resize-none rounded-lg bg-card px-4 py-3 text-sm placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary" />
           <button type="submit" aria-label="Envoyer" aria-busy={sending} disabled={!body.trim() || sending}
-            className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground disabled:opacity-50">
-            <Send size={17} aria-hidden="true" />
+            className="grid size-12 shrink-0 place-items-center rounded-lg bg-[#765747] text-primary-foreground disabled:opacity-50">
+            <Send size={20} aria-hidden="true" />
           </button>
         </div>
         {body.length >= 1800 && <small className="text-right text-xs text-muted-foreground" aria-live="polite">{body.length}/2000</small>}

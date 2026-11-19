@@ -35,3 +35,13 @@ export function formatDateTime(value: string | null | undefined): string {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? value : dateTime.format(date)
 }
+
+// Âge d'un enfant à partir de sa date de naissance ("2024-03-15") : "18 mois" avant 2 ans, puis "2 ans".
+// Utilisé par l'accueil parent et la liste des enfants.
+export function ageLabel(birthDate: string, today: Date = new Date()): string {
+  const birth = new Date(`${birthDate.slice(0, 10)}T12:00:00`)
+  if (Number.isNaN(birth.getTime())) return ''
+  const months = (today.getFullYear() - birth.getFullYear()) * 12 + today.getMonth() - birth.getMonth() - (today.getDate() < birth.getDate() ? 1 : 0)
+  if (months < 0) return ''
+  return months < 24 ? `${months} mois` : `${Math.floor(months / 12)} ans`
+}
